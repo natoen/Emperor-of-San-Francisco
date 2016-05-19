@@ -4,7 +4,6 @@
   "description": "Inspired by the board game King of Tokyo",
   "main": "bundle.js",
   "scripts": {
-    "postinstall": "grunt build",
     "start": "node server/server.js",
     "test": "mocha -R spec"
   },
