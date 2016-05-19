@@ -147,7 +147,3 @@ module.exports = (grunt) => {
   //   }
   // },
 
-  Hi we're Team HAL and we're presenting Emperor of San Francisco a board game web app based of off King of Tokyo.
-  Emperor of San Francisco is a resource management game, something like a Yahtzee meets Magic The Gathering, where
-  we have HP to maintain to stay in the game, 20 points of VP to earn to win the game, and energy which we will use
-  to buy cards which are our weapons. Our product owner. . . . .  
