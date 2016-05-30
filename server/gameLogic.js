@@ -1,4 +1,6 @@
 'use strict';
+const Heroku = require('heroku-client');
+const heroku = new Heroku({ token: process.env.HEROKU_API_TOKEN });
 const e = require('./events.js');
 const cards = require('./cardData.js');
 const deck = cards.slice();
@@ -7,7 +9,10 @@ let discardPile = [];
 let Users = [];
 let currentTurn = 1;
 let currentEmperor = -1;
-let selectableMonsters = ['Alienoid', 'Cyber_Bunny', 'Giga_Zaur', 'Kraken', 'Meka_Dragon', 'The_King'];
+let selectableMonsters = [
+  'Alienoid', 'Cyber_Bunny', 'Giga_Zaur',
+  'Kraken', 'Meka_Dragon', 'The_King',
+];
 let userMonsters = [];
 let userNicknames = [];
 let emitted = false;
@@ -330,8 +335,10 @@ module.exports = (io) => {
 
 
     socket.on('disconnect', () => {
-      console.log('A user has disconnected...');
+      console.log('A user has disconnected...', Users.length, 1);
+
       Users.forEach((user, index) => {
+        let disconnect = 1;
         if (user.socket === socket) {
           user.isAlive = false;
           if (index === currentTurn) {
@@ -340,11 +347,18 @@ module.exports = (io) => {
               if (currentTurn > Users.length - 1) {
                 currentTurn = 0;
               }
+
+              if (disconnect === 7) {
+                heroku.delete('/apps/eosf/dynos').then();
+                break;
+              }
+
+              disconnect++;
             } while (!Users[currentTurn].isAlive);
             io.emit('updateTurn', currentTurn);
           }
 
-          if(user.isEmperor) {
+          if (user.isEmperor) {
             user.isEmperor = false;
             let newEmperor = index;
             do {
@@ -352,6 +366,13 @@ module.exports = (io) => {
               if (newEmperor < 0) {
                 newEmperor = Users.length - 1;
               }
+
+              if (disconnect === 7) {
+                heroku.delete('/apps/eosf/dynos').then();
+                break;
+              }
+
+              disconnect++;
             } while (!Users[newEmperor].isAlive);
             Users[newEmperor].isEmperor = true;
             currentEmperor = e.findEmperor(Users);
@@ -359,6 +380,8 @@ module.exports = (io) => {
           }
         }
       });
+
+      console.log('A user has disconnected...', Users.length, 2);
     });
 
     // Pregame Lobby
