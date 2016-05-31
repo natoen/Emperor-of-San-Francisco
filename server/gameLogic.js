@@ -1,4 +1,6 @@
 'use strict';
+const Heroku = require('heroku-client');
+const heroku = new Heroku({ token: process.env.HEROKU_API_TOKEN });
 const e = require('./events.js');
 const cards = require('./cardData.js');
 const deck = cards.slice();
@@ -332,6 +334,8 @@ module.exports = (io) => {
     socket.on('disconnect', () => {
       console.log('A user has disconnected...');
       Users.forEach((user, index) => {
+        let disconnect = 0;
+
         if (user.socket === socket) {
           user.isAlive = false;
           if (index === currentTurn) {
@@ -340,11 +344,18 @@ module.exports = (io) => {
               if (currentTurn > Users.length - 1) {
                 currentTurn = 0;
               }
+
+              if (disconnect === 6) {
+                heroku.delete('/apps/eosf/dynos').then();
+                break;
+              }
+
+              disconnect++;
             } while (!Users[currentTurn].isAlive);
             io.emit('updateTurn', currentTurn);
           }
 
-          if(user.isEmperor) {
+          if (user.isEmperor) {
             user.isEmperor = false;
             let newEmperor = index;
             do {
@@ -352,6 +363,13 @@ module.exports = (io) => {
               if (newEmperor < 0) {
                 newEmperor = Users.length - 1;
               }
+
+              if (disconnect === 6) {
+                heroku.delete('/apps/eosf/dynos').then();
+                break;
+              }
+
+              disconnect++;
             } while (!Users[newEmperor].isAlive);
             Users[newEmperor].isEmperor = true;
             currentEmperor = e.findEmperor(Users);
